@@ -320,25 +320,20 @@ const StudyView = ({
   );
 };
 
-// 3. Settings/API Key View
+// 3. Settings View - Fully Refactored for Horizontal (Landscape-style) Section Scrolling
+// Reduced font sizes for a more balanced UI as requested.
 const SettingsView = ({ 
-    apiKey, 
-    setApiKey, 
     dailyGoal,
     setDailyGoal,
     onBack 
 }: { 
-    apiKey: string | null, 
-    setApiKey: (k: string) => void,
     dailyGoal: number,
     setDailyGoal: (g: number) => void,
     onBack: () => void 
 }) => {
-    const [inputKey, setInputKey] = useState(apiKey || '');
     const [inputGoal, setInputGoal] = useState(dailyGoal.toString());
 
     const handleSave = () => {
-        setApiKey(inputKey);
         const goal = parseInt(inputGoal);
         if (!isNaN(goal) && goal > 0) {
             setDailyGoal(goal);
@@ -347,68 +342,73 @@ const SettingsView = ({
     }
 
     return (
-        <div className="p-6 h-full flex flex-col justify-center items-center bg-stone-50">
-            <div className="w-full max-w-md bg-white rounded-2xl shadow-xl p-8 border border-stone-200">
-                <h2 className="text-2xl font-bold mb-6 text-stone-800 flex items-center gap-2">
-                    <Settings className="w-6 h-6" /> Settings
-                </h2>
+        <div className="w-full h-full flex items-center justify-center bg-stone-50 overflow-hidden">
+            {/* The Main Horizontal Scrolling Card */}
+            <div className="bg-white rounded-[40px] shadow-2xl border border-stone-100 flex flex-row items-stretch gap-8 p-10 overflow-x-auto max-w-[95%] h-[75%] scrollbar-hide">
                 
-                {/* Daily Goal Section */}
-                <div className="mb-6">
-                    <label className="block text-sm font-semibold text-stone-600 mb-2">Daily Word Goal</label>
-                    <div className="flex gap-2 mb-2">
-                        {[10, 20, 50].map(val => (
+                {/* Section 1: Settings Label + Icon */}
+                <div className="flex flex-col items-center justify-center gap-6 px-4 border-r border-stone-50 pr-8">
+                   <div className="bg-stone-50 p-4 rounded-[24px] shadow-inner border border-stone-100">
+                      <Settings className="w-8 h-8 text-stone-700" />
+                   </div>
+                   {/* "Settings" in Traditional Mongolian: ᠲᠣᠬᠢᠷᠠᠭᠤᠯᠭ᠎ᠠ - Font size reduced to text-xl */}
+                   <VerticalText text="ᠲᠣᠬᠢᠷᠠᠭᠤᠯᠭ᠎ᠠ" className="text-xl font-bold text-stone-800 h-40" />
+                </div>
+                
+                {/* Section 2: Daily Goal Vertical Label */}
+                <div className="flex items-center justify-center px-4">
+                    {/* "Daily Word Goal" in Traditional Mongolian: ᠡᠳᠦᠷ ᠪᠦᠷᠢ ᠶᠢᠨ ᠵᠣᠷᠢᠯᠲᠠ - Font size reduced to text-sm */}
+                    <VerticalText text="ᠡᠳᠦᠷ ᠪᠦᠷᠢ ᠶᠢᠨ ᠵᠣᠷᠢᠯᠲᠠ" className="text-sm font-bold text-stone-400 h-56" />
+                </div>
+
+                {/* Section 3: Goal Input & Presets */}
+                <div className="flex flex-col items-center justify-center gap-8 px-4 min-w-[240px]">
+                    {/* Big Numeric Display - Font size reduced to text-4xl */}
+                    <div className="relative w-full">
+                        <input 
+                            type="number" 
+                            value={inputGoal}
+                            onChange={(e) => setInputGoal(e.target.value)}
+                            className="w-full h-24 bg-stone-50 border-4 border-stone-100 rounded-[32px] font-extrabold text-4xl text-center text-stone-800 focus:border-blue-100 focus:bg-white focus:outline-none transition-all shadow-inner"
+                        />
+                    </div>
+
+                    {/* Preset Buttons - 10, 20, 30 as row - Font size reduced to text-lg */}
+                    <div className="flex gap-3 w-full">
+                        {[10, 20, 30].map(val => (
                             <button
                                 key={val}
                                 onClick={() => setInputGoal(val.toString())}
-                                className={`flex-1 py-2 rounded-xl text-sm font-bold border-2 transition-all ${
+                                className={`flex-1 aspect-square rounded-[24px] text-lg font-extrabold border-2 transition-all ${
                                     parseInt(inputGoal) === val 
-                                    ? 'border-blue-500 bg-blue-50 text-blue-600' 
-                                    : 'border-stone-100 bg-stone-50 text-stone-500 hover:border-stone-200'
+                                    ? 'border-blue-200 bg-blue-50 text-blue-600 shadow-md scale-105' 
+                                    : 'border-stone-50 bg-white text-stone-300 hover:border-stone-200'
                                 }`}
                             >
                                 {val}
                             </button>
                         ))}
                     </div>
-                    <div className="relative">
-                        <input 
-                            type="number" 
-                            value={inputGoal}
-                            onChange={(e) => setInputGoal(e.target.value)}
-                            className="w-full p-4 bg-stone-50 border-2 border-stone-100 rounded-xl font-bold text-stone-800 focus:border-blue-400 focus:outline-none transition-colors"
-                        />
-                        <span className="absolute right-4 top-1/2 -translate-y-1/2 text-stone-400 font-medium text-sm">words</span>
-                    </div>
                 </div>
 
-                {/* API Key Section */}
-                <div className="mb-8">
-                    <label className="block text-sm font-semibold text-stone-600 mb-2">Gemini API Key</label>
-                    <input 
-                        type="password" 
-                        value={inputKey}
-                        onChange={(e) => setInputKey(e.target.value)}
-                        placeholder="Enter API Key"
-                        className="w-full p-4 bg-stone-50 border-2 border-stone-100 rounded-xl text-stone-800 focus:border-blue-400 focus:outline-none transition-colors"
-                    />
-                    <p className="mt-2 text-xs text-stone-400 px-1">
-                        Required for AI word generation & TTS.
-                    </p>
-                </div>
-                
-                <div className="flex flex-col gap-3">
+                {/* Section 4: Action Buttons (Save/Cancel) */}
+                <div className="flex flex-col items-center justify-center gap-8 px-8 border-l border-stone-50 pl-10">
+                    {/* Save Button - Text size reduced to text-lg */}
                     <button 
                         onClick={handleSave}
-                        className="w-full py-4 bg-blue-600 text-white rounded-xl font-bold hover:bg-blue-700 transition-colors shadow-blue-200 shadow-lg active:scale-95 transform duration-200"
+                        className="w-24 h-48 bg-[#A7D9FF] text-stone-800 rounded-[32px] flex items-center justify-center hover:brightness-105 active:scale-95 transition-all shadow-lg shadow-blue-50 group"
                     >
-                        Save Changes
+                        {/* "Save Changes" in Traditional Mongolian: ᠬᠠᠳᠠᠭᠠᠯᠠᠬᠤ */}
+                        <VerticalText text="ᠬᠠᠳᠠᠭᠠᠯᠠᠬᠤ" className="font-bold text-lg h-36 group-hover:scale-105 transition-transform" />
                     </button>
+                    
+                    {/* Cancel Button - Text size reduced to text-sm */}
                     <button 
                         onClick={onBack}
-                        className="w-full py-4 text-stone-500 hover:text-stone-800 font-bold"
+                        className="flex items-center justify-center p-3 hover:bg-stone-50 rounded-2xl transition-colors group"
                     >
-                        Cancel
+                        {/* "Cancel" in Traditional Mongolian: ᠪᠣᠯᠢᠬᠤ */}
+                        <VerticalText text="ᠪᠣᠯᠢᠬᠤ" className="text-stone-300 group-hover:text-stone-500 font-bold text-sm h-20" />
                     </button>
                 </div>
             </div>
@@ -444,8 +444,7 @@ export default function App() {
     const categoryToUse = categoryOverride || state.selectedCategory;
     
     if (!state.apiKey) {
-        setState(prev => ({ ...prev, currentView: 'settings' }));
-        return;
+        console.warn("No API Key detected. Ensure process.env.API_KEY is set.");
     }
 
     setIsLoading(true);
@@ -459,7 +458,7 @@ export default function App() {
         }));
     } catch (e) {
         console.error("Failed to generate", e);
-        alert("Failed to generate words. Check your API Key.");
+        alert("Failed to generate words. Check your API configuration.");
     } finally {
         setIsLoading(false);
         setShowLibrary(false);
@@ -467,17 +466,11 @@ export default function App() {
   };
 
   const handleLibrarySelect = (cat: WordCategory) => {
-      // Just update state for preview, do not generate yet
       setState(prev => ({ ...prev, selectedCategory: cat }));
   };
 
   const handleLibraryConfirm = () => {
       handleGenerateWords(state.selectedCategory);
-  };
-
-  // State setters for settings view
-  const setApiKey = (key: string) => {
-      setState(prev => ({ ...prev, apiKey: key }));
   };
 
   const setDailyGoal = (goal: number) => {
@@ -487,7 +480,6 @@ export default function App() {
   if (isLoading) {
     return (
         <div className="h-screen w-screen flex flex-col items-center justify-center bg-stone-50 space-y-6 relative overflow-hidden">
-             {/* Abstract loader background */}
              <div className="absolute inset-0 flex items-center justify-center opacity-5">
                  <div className="w-64 h-64 border-8 border-stone-900 rounded-full animate-ping"></div>
              </div>
@@ -503,7 +495,6 @@ export default function App() {
 
   return (
     <div className="w-full h-screen max-w-md mx-auto bg-stone-50 shadow-2xl overflow-hidden font-sans relative">
-      {/* Library Modal Overlay */}
       <LibraryModal 
         isOpen={showLibrary} 
         onClose={() => setShowLibrary(false)}
@@ -530,7 +521,6 @@ export default function App() {
       )}
 
       {state.currentView === 'review' && (
-        // Reusing Study view for review mock
         <StudyView 
             words={[...state.words].reverse()} 
             category={`${state.selectedCategory} Review`}
@@ -541,8 +531,6 @@ export default function App() {
 
       {state.currentView === 'settings' && (
         <SettingsView 
-            apiKey={state.apiKey}
-            setApiKey={setApiKey}
             dailyGoal={state.dailyGoal}
             setDailyGoal={setDailyGoal}
             onBack={() => setState(prev => ({ ...prev, currentView: 'home' }))}
