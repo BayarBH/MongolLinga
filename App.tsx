@@ -1,17 +1,13 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { BookOpen, RotateCcw, ArrowLeft, Volume2, Info, Settings, Loader2, Check, X } from 'lucide-react';
 import { AppState, WordItem, ViewState, WordCategory } from './types';
-import { GeminiService } from './services/geminiService';
+// 临时禁用 GeminiService
+// import { GeminiService } from './services/geminiService';
 import { VerticalText } from './components/VerticalText';
+import { getUserId } from './utils/userIdUtils';
+import './utils/fetchInterceptor';
 
-// --- MOCK DATA FOR INITIAL LOAD ---
-const MOCK_WORDS: WordItem[] = [
-  { id: '1', english: 'Addition', mongolian: 'ᠨᠡᠮᠡᠬᠦ ᠦᠢᠯᠡᠳᠡᠯ', example: 'Addition is basic math.' },
-  { id: '2', english: 'History', mongolian: 'ᠲᠡᠦᠬᠡ', example: 'We study history.' },
-  { id: '3', english: 'Nature', mongolian: 'ᠪᠠᠶᠢᠭᠠᠯᠢ', example: 'Nature is beautiful.' },
-  { id: '4', english: 'Science', mongolian: 'ᠰᠢᠨᠵᠢᠯᠡᠬᠦ ᠤᠬᠠᠭᠠᠨ', example: 'Science explains the world.' },
-  { id: '5', english: 'Future', mongolian: 'ᠢᠷᠡᠭᠡᠳᠦᠢ', example: 'The future is bright.' },
-];
+
 
 const CATEGORIES: { id: WordCategory; label: string; mongolian: string; desc: string }[] = [
     { id: 'General', label: 'General', mongolian: 'ᠶᠡᠷᠦᠩᠬᠡᠢ', desc: 'Everyday vocabulary' },
@@ -196,17 +192,18 @@ const HomeView = ({
 const StudyView = ({ 
   words, 
   category,
-  geminiService,
+  // geminiService,
   onBack 
 }: { 
   words: WordItem[]; 
   category: string;
-  geminiService: React.MutableRefObject<GeminiService>;
+  // geminiService: React.MutableRefObject<GeminiService>;
   onBack: () => void;
 }) => {
   const [currentIndex, setCurrentIndex] = useState(0);
   const [selectedOption, setSelectedOption] = useState<string | null>(null);
   const [shuffledOptions, setShuffledOptions] = useState<WordItem[]>([]);
+  const [showNextButton, setShowNextButton] = useState(false);
 
   const currentWord = words[currentIndex % words.length];
 
@@ -219,6 +216,7 @@ const StudyView = ({
     const options = [currentWord, ...distractors].sort(() => 0.5 - Math.random());
     setShuffledOptions(options);
     setSelectedOption(null);
+    setShowNextButton(false);
   }, [currentWord, words]);
 
   const handleOptionClick = (id: string) => {
@@ -232,12 +230,38 @@ const StudyView = ({
                 // End of set loop
                 setCurrentIndex(0);
             }
+            setShowNextButton(false);
         }, 1000);
+    } else {
+        // 错误选择，显示Next按钮
+        setShowNextButton(true);
     }
   };
 
+  const handleNextClick = () => {
+    if (currentIndex < words.length - 1) {
+        setCurrentIndex(prev => prev + 1);
+    } else {
+        // End of set loop
+        setCurrentIndex(0);
+    }
+    setSelectedOption(null);
+    setShowNextButton(false);
+    // 重新生成选项
+    const distractors = words
+      .filter(w => w.id !== words[(currentIndex + 1) % words.length].id)
+      .sort(() => 0.5 - Math.random())
+      .slice(0, 3);
+    const nextWord = words[(currentIndex + 1) % words.length];
+    const options = [nextWord, ...distractors].sort(() => 0.5 - Math.random());
+    setShuffledOptions(options);
+  };
+
   const playAudio = () => {
-    geminiService.current.playPronunciation(currentWord.english);
+    // 临时禁用 Gemini TTS，使用浏览器默认 TTS
+    const utterance = new SpeechSynthesisUtterance(currentWord.english);
+    utterance.lang = 'en-US';
+    window.speechSynthesis.speak(utterance);
   };
 
   return (
@@ -309,12 +333,24 @@ const StudyView = ({
         })}
       </div>
 
-      {/* Bottom Information */}
-      <div className="mt-6 mb-4 px-4 flex justify-center">
+      {/* Bottom Section - Example and Next Button */}
+      <div className="mt-6 mb-4 px-4 flex flex-col items-center gap-4">
+        {/* Example Text */}
         <div className="px-5 py-3 rounded-2xl bg-white border border-stone-100 shadow-sm text-stone-500 text-sm flex items-center gap-2">
             <Info className="w-4 h-4 text-stone-400" />
             <span>{currentWord.example}</span>
         </div>
+        
+        {/* Next Button - Only shown when wrong answer is selected */}
+        {showNextButton && (
+          <button
+            onClick={handleNextClick}
+            className="px-6 py-3 bg-blue-600 hover:bg-blue-700 text-white rounded-xl font-bold shadow-lg transition-all active:scale-95 flex items-center gap-2"
+          >
+            <span>Next</span>
+            <ArrowLeft className="w-5 h-5 rotate-180" />
+          </button>
+        )}
       </div>
     </div>
   );
@@ -422,7 +458,7 @@ export default function App() {
   const [state, setState] = useState<AppState>({
     apiKey: process.env.API_KEY || null,
     currentView: 'home',
-    words: MOCK_WORDS,
+    words: [],
     learnedCount: 15,
     dailyGoal: 20,
     reviewCount: 0,
@@ -432,36 +468,88 @@ export default function App() {
 
   const [isLoading, setIsLoading] = useState(false);
   const [showLibrary, setShowLibrary] = useState(false);
-  const geminiService = useRef(new GeminiService(state.apiKey || ''));
+  // 临时禁用 GeminiService
+  // const geminiService = useRef(new GeminiService(state.apiKey || ''));
+  const geminiService = useRef(null as any);
 
+  // useEffect(() => {
+  //   if (state.apiKey) {
+  //     geminiService.current.updateApiKey(state.apiKey);
+  //   }
+  // }, [state.apiKey]);
+
+  // 组件挂载时加载初始单词列表
   useEffect(() => {
-    if (state.apiKey) {
-      geminiService.current.updateApiKey(state.apiKey);
-    }
-  }, [state.apiKey]);
+    const loadInitialWords = async () => {
+      // 只加载数据，不改变视图
+      setIsLoading(true);
+      try {
+        const response = await fetch(`/api/word/list`, {
+          method: 'GET',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+        });
+
+        if (!response.ok) {
+          throw new Error(`HTTP error! status: ${response.status}`);
+        }
+
+        let data = await response.json();
+        console.log(data)
+        data = data.data.data
+        const newWords = Array.isArray(data) ? data : (data.words || []);
+        
+        setState(prev => ({ 
+          ...prev, 
+          words: newWords,
+          selectedCategory: 'General' 
+        }));
+      } catch (e) {
+        console.error("Failed to fetch initial words from API", e);
+        // 即使失败也保持在首页
+      } finally {
+        setIsLoading(false);
+      }
+    };
+    loadInitialWords();
+  }, []);
 
   const handleGenerateWords = async (categoryOverride?: WordCategory) => {
     const categoryToUse = categoryOverride || state.selectedCategory;
     
-    if (!state.apiKey) {
-        console.warn("No API Key detected. Ensure process.env.API_KEY is set.");
-    }
-
     setIsLoading(true);
     try {
-        const newWords = await geminiService.current.generateWordList(categoryToUse);
-        setState(prev => ({ 
-            ...prev, 
-            words: newWords,
-            currentView: 'study',
-            selectedCategory: categoryToUse 
-        }));
+      // 调用真实后台接口获取单词列表
+      const response = await fetch(`/api/word/list`, {
+        method: 'GET',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+      });
+
+      if (!response.ok) {
+        throw new Error(`HTTP error! status: ${response.status}`);
+      }
+
+      let data = await response.json();
+      console.log(data)
+      data = data.data.data
+      // 假设后端返回的数据格式为 { words: WordItem[] } 或直接是 WordItem[]
+      const newWords = Array.isArray(data) ? data : (data.words || []);
+      
+      setState(prev => ({ 
+        ...prev, 
+        words: newWords,
+        currentView: 'study', // 现在只在明确选择学习时跳转
+        selectedCategory: categoryToUse 
+      }));
     } catch (e) {
-        console.error("Failed to generate", e);
-        alert("Failed to generate words. Check your API configuration.");
+      console.error("Failed to fetch words from API", e);
+      alert("Failed to load words from server. Please check your connection and try again.");
     } finally {
-        setIsLoading(false);
-        setShowLibrary(false);
+      setIsLoading(false);
+      setShowLibrary(false);
     }
   };
 
@@ -515,7 +603,6 @@ export default function App() {
         <StudyView 
             words={state.words} 
             category={state.selectedCategory}
-            geminiService={geminiService}
             onBack={() => setState(prev => ({ ...prev, currentView: 'home' }))} 
         />
       )}
@@ -524,7 +611,6 @@ export default function App() {
         <StudyView 
             words={[...state.words].reverse()} 
             category={`${state.selectedCategory} Review`}
-            geminiService={geminiService}
             onBack={() => setState(prev => ({ ...prev, currentView: 'home' }))} 
         />
       )}
