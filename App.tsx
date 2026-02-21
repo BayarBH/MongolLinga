@@ -378,28 +378,29 @@ const SettingsView = ({
     }
 
     return (
-        <div className="w-full h-full flex items-center justify-center bg-stone-50 overflow-hidden">
-            {/* The Main Horizontal Scrolling Card */}
-            <div className="bg-white rounded-[40px] shadow-2xl border border-stone-100 flex flex-row items-stretch gap-8 p-10 overflow-x-auto max-w-[95%] h-[75%] scrollbar-hide">
-                
-                {/* Section 1: Settings Label + Icon */}
-                <div className="flex flex-col items-center justify-center gap-6 px-4 border-r border-stone-50 pr-8">
-                   <div className="bg-stone-50 p-4 rounded-[24px] shadow-inner border border-stone-100">
-                      <Settings className="w-8 h-8 text-stone-700" />
-                   </div>
-                   {/* "Settings" in Traditional Mongolian: ᠲᠣᠬᠢᠷᠠᠭᠤᠯᠭ᠎ᠠ - Font size reduced to text-xl */}
-                   <VerticalText text="ᠲᠣᠬᠢᠷᠠᠭᠤᠯᠭ᠎ᠠ" className="text-xl font-bold text-stone-800 h-40" />
+        <div className="w-full h-full flex flex-col bg-stone-50 overflow-hidden">
+            {/* Section 1: Settings Label + Icon (Top 30%) */}
+            <div className="flex items-center justify-center h-[5%]">
+                <div className="flex flex-col items-center justify-center gap-6">
+                    <div className="bg-stone-50 p-4 rounded-[24px] shadow-inner border border-stone-100">
+                        <Settings className="w-8 h-8 text-stone-700" />
+                    </div>
+                    {/* "Settings" in Traditional Mongolian: ᠲᠣᠬᠢᠷᠠᠭᠤᠯᠭ᠎ᠠ */}
+                    {/* <VerticalText text="ᠲᠣᠬᠢᠷᠠᠭᠤᠯᠭ᠎ᠠ" className="text-xl font-bold text-stone-800 h-40" /> */}
                 </div>
-                
+            </div>
+            
+            {/* Middle Section: Section 2 and 3 (Middle 40%) */}
+            <div className="flex items-center justify-center h-[60%] gap-8 p-4">
                 {/* Section 2: Daily Goal Vertical Label */}
-                <div className="flex items-center justify-center px-4">
-                    {/* "Daily Word Goal" in Traditional Mongolian: ᠡᠳᠦᠷ ᠪᠦᠷᠢ ᠶᠢᠨ ᠵᠣᠷᠢᠯᠲᠠ - Font size reduced to text-sm */}
+                <div className="flex items-center justify-center">
+                    {/* "Daily Word Goal" in Traditional Mongolian: ᠡᠳᠦᠷ ᠪᠦᠷᠢ ᠶᠢᠨ ᠵᠣᠷᠢᠯᠲᠠ */}
                     <VerticalText text="ᠡᠳᠦᠷ ᠪᠦᠷᠢ ᠶᠢᠨ ᠵᠣᠷᠢᠯᠲᠠ" className="text-sm font-bold text-stone-400 h-56" />
                 </div>
 
                 {/* Section 3: Goal Input & Presets */}
-                <div className="flex flex-col items-center justify-center gap-8 px-4 min-w-[240px]">
-                    {/* Big Numeric Display - Font size reduced to text-4xl */}
+                <div className="flex flex-col items-center justify-center gap-8 min-w-[240px]">
+                    {/* Big Numeric Display */}
                     <div className="relative w-full">
                         <input 
                             type="number" 
@@ -409,7 +410,7 @@ const SettingsView = ({
                         />
                     </div>
 
-                    {/* Preset Buttons - 10, 20, 30 as row - Font size reduced to text-lg */}
+                    {/* Preset Buttons - 10, 20, 30 as row */}
                     <div className="flex gap-3 w-full">
                         {[10, 20, 30].map(val => (
                             <button
@@ -426,25 +427,27 @@ const SettingsView = ({
                         ))}
                     </div>
                 </div>
+            </div>
 
-                {/* Section 4: Action Buttons (Save/Cancel) */}
-                <div className="flex flex-col items-center justify-center gap-8 px-8 border-l border-stone-50 pl-10">
-                    {/* Save Button - Text size reduced to text-lg */}
-                    <button 
-                        onClick={handleSave}
-                        className="w-24 h-48 bg-[#A7D9FF] text-stone-800 rounded-[32px] flex items-center justify-center hover:brightness-105 active:scale-95 transition-all shadow-lg shadow-blue-50 group"
-                    >
-                        {/* "Save Changes" in Traditional Mongolian: ᠬᠠᠳᠠᠭᠠᠯᠠᠬᠤ */}
-                        <VerticalText text="ᠬᠠᠳᠠᠭᠠᠯᠠᠬᠤ" className="font-bold text-lg h-36 group-hover:scale-105 transition-transform" />
-                    </button>
-                    
-                    {/* Cancel Button - Text size reduced to text-sm */}
+            {/* Section 4: Action Buttons (Bottom 30%) */}
+            <div className="flex items-center justify-center h-[30%]">
+                <div className="flex items-center justify-center gap-12">
+                    {/* Cancel Button - Positioned on the left */}
                     <button 
                         onClick={onBack}
                         className="flex items-center justify-center p-3 hover:bg-stone-50 rounded-2xl transition-colors group"
                     >
                         {/* "Cancel" in Traditional Mongolian: ᠪᠣᠯᠢᠬᠤ */}
                         <VerticalText text="ᠪᠣᠯᠢᠬᠤ" className="text-stone-300 group-hover:text-stone-500 font-bold text-sm h-20" />
+                    </button>
+                    
+                    {/* Save Button - Positioned on the right */}
+                    <button 
+                        onClick={handleSave}
+                        className="w-24 h-48 bg-[#A7D9FF] text-stone-800 rounded-[32px] flex items-center justify-center hover:brightness-105 active:scale-95 transition-all shadow-lg shadow-blue-50 group"
+                    >
+                        {/* "Save Changes" in Traditional Mongolian: ᠬᠠᠳᠠᠭᠠᠯᠠᠬᠤ */}
+                        <VerticalText text="ᠬᠠᠳᠠᠭᠠᠯᠠᠬᠤ" className="font-bold text-lg h-36 group-hover:scale-105 transition-transform" />
                     </button>
                 </div>
             </div>
