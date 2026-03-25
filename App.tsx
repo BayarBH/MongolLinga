@@ -1,7 +1,6 @@
 import React, { useState, useEffect, useRef } from 'react';
-import { BookOpen, RotateCcw, ArrowLeft, Volume2, Info, Settings, Loader2, Check, X } from 'lucide-react';
+import { BookOpen, RotateCcw, ArrowLeft, Volume2, Info, Settings, Check, X, ArrowRight } from 'lucide-react';
 import { AppState, WordItem, ViewState, WordCategory } from './types';
-import { GeminiService } from './services/geminiService';
 import { VerticalText } from './components/VerticalText';
 
 // --- MOCK DATA FOR INITIAL LOAD ---
@@ -106,7 +105,131 @@ const LibraryModal = ({
     );
 };
 
-// 2. Home Screen Component
+// 3. Word Detail Modal
+const WordDetailModal = ({ 
+    isOpen, 
+    onClose, 
+    onNext,
+    word,
+    nextWord
+}: { 
+    isOpen: boolean; 
+    onClose: () => void; 
+    onNext: () => void;
+    word: WordItem | null;
+    nextWord: WordItem | null;
+}) => {
+    if (!isOpen || !word) return null;
+
+    return (
+        <div className="absolute inset-0 z-[60] flex items-center justify-center">
+            <div className="absolute inset-0 bg-white z-0"></div>
+            <div className="bg-white w-full h-full z-10 overflow-hidden flex flex-col relative animate-in fade-in slide-in-from-bottom-8 duration-500">
+                <button 
+                    onClick={onClose}
+                    className="absolute top-8 left-8 p-3 bg-stone-100 rounded-full hover:bg-stone-200 transition-colors z-20"
+                >
+                    <ArrowLeft className="w-6 h-6 text-stone-600" />
+                </button>
+
+                {/* Top 1/3: English */}
+                <div className="flex-1 flex flex-col items-center justify-center p-8 border-b border-stone-50">
+                    <span className="text-stone-400 text-xs font-bold tracking-[0.3em] uppercase mb-4">English</span>
+                    <h2 className="text-6xl font-black text-stone-900 text-center leading-tight tracking-tight">{word.english}</h2>
+                </div>
+
+                {/* Middle 1/3: Mongolian */}
+                <div className="flex-1 flex flex-col items-center justify-center p-8 bg-stone-50/30 border-b border-stone-50">
+                    <span className="text-stone-400 text-xs font-bold tracking-[0.3em] uppercase mb-6">Mongolian</span>
+                    <div className="flex-1 flex items-center justify-center">
+                        <VerticalText text={word.mongolian} className="text-5xl font-bold text-blue-600 h-56" />
+                    </div>
+                </div>
+
+                {/* Bottom 1/3: Example */}
+                <div className="flex-1 flex flex-col items-center justify-center p-12 text-center relative bg-white">
+                    <div className="max-w-xs">
+                        <span className="text-stone-400 text-xs font-bold tracking-[0.3em] uppercase mb-6 block">Usage Context</span>
+                        <p className="text-stone-600 text-xl leading-relaxed font-medium italic">
+                            "{word.example}"
+                        </p>
+                    </div>
+                </div>
+
+                {/* Next Word Button - Minimalist Pill - Ultra Compact */}
+                <button 
+                    onClick={onNext}
+                    className="absolute bottom-6 right-6 px-4 h-8 bg-blue-600 text-white flex items-center justify-center rounded-full hover:bg-blue-700 transition-all group z-30 shadow-lg shadow-blue-100"
+                >
+                    <div className="flex items-center gap-1.5">
+                        <span className="text-[10px] font-bold whitespace-nowrap">{nextWord?.english || 'Finish'}</span>
+                        <ArrowRight className="w-3.5 h-3.5 group-hover:translate-x-1 transition-transform duration-200" />
+                    </div>
+                </button>
+            </div>
+        </div>
+    );
+};
+
+// 4. Success Modal
+const SuccessModal = ({ 
+    isOpen, 
+    onClose 
+}: { 
+    isOpen: boolean; 
+    onClose: () => void 
+}) => {
+    if (!isOpen) return null;
+
+    return (
+        <div className="absolute inset-0 z-[100] flex items-center justify-center p-6">
+            {/* Backdrop */}
+            <div 
+                className="absolute inset-0 bg-stone-900/60 backdrop-blur-md animate-in fade-in duration-500" 
+                onClick={onClose}
+            ></div>
+            
+            {/* Modal Content - Horizontal Layout */}
+            <div className="bg-white w-full max-w-md rounded-[40px] p-8 shadow-2xl z-10 flex flex-row items-stretch gap-6 animate-in zoom-in slide-in-from-bottom-12 duration-500">
+                {/* Left: Content Area */}
+                <div className="flex-1 flex flex-col items-center justify-center gap-6 py-4">
+                    <div className="w-16 h-16 bg-green-100 rounded-full flex items-center justify-center shadow-inner">
+                        <Check className="w-8 h-8 text-green-600" />
+                    </div>
+                    
+                    <div className="flex flex-row items-start gap-4 h-64">
+                        {/* Column 1: You Words */}
+                        <VerticalText 
+                            text="ᠲᠠ ᠦᠭᠡᠰ-ᠢ" 
+                            className="text-xl font-bold text-stone-800 h-full" 
+                        />
+                        {/* Column 2: Successfully */}
+                        <VerticalText 
+                            text="ᠠᠮᠵᠢᠯᠲᠠᠲᠠᠢ" 
+                            className="text-xl font-bold text-stone-800 h-full" 
+                        />
+                        {/* Column 3: Memorized */}
+                        <VerticalText 
+                            text="ᠴᠡᠭᠡᠵᠢᠯᠡᠪᠡ" 
+                            className="text-xl font-bold text-stone-800 h-full" 
+                        />
+                    </div>
+                </div>
+
+                {/* Right: Vertical Button Column */}
+                <button 
+                    onClick={onClose}
+                    className="w-20 bg-blue-600 hover:bg-blue-700 text-white rounded-[32px] flex items-center justify-center shadow-lg shadow-blue-100 active:scale-95 transition-all group"
+                >
+                    {/* "Back" in Traditional Mongolian: ᠪᠣᠴᠠᠬᠤ */}
+                    <VerticalText text="ᠪᠣᠴᠠᠬᠤ" className="text-white text-lg font-bold h-32 group-hover:scale-105 transition-transform" />
+                </button>
+            </div>
+        </div>
+    );
+};
+
+// 4. Home Screen Component
 const HomeView = ({ 
   state, 
   onNavigate, 
@@ -196,19 +319,20 @@ const HomeView = ({
 const StudyView = ({ 
   words, 
   category,
-  geminiService,
   onBack 
 }: { 
   words: WordItem[]; 
   category: string;
-  geminiService: React.MutableRefObject<GeminiService>;
   onBack: () => void;
 }) => {
   const [currentIndex, setCurrentIndex] = useState(0);
   const [selectedOption, setSelectedOption] = useState<string | null>(null);
   const [shuffledOptions, setShuffledOptions] = useState<WordItem[]>([]);
+  const [showDetail, setShowDetail] = useState(false);
+  const [showSuccess, setShowSuccess] = useState(false);
 
   const currentWord = words[currentIndex % words.length];
+  const nextWord = currentIndex < words.length - 1 ? words[currentIndex + 1] : null;
 
   // Prepare options (1 correct + 3 random)
   useEffect(() => {
@@ -221,34 +345,66 @@ const StudyView = ({
     setSelectedOption(null);
   }, [currentWord, words]);
 
+  const handleNext = () => {
+    if (currentIndex < words.length - 1) {
+        setCurrentIndex(prev => prev + 1);
+        setShowDetail(false);
+        setSelectedOption(null);
+    } else {
+        // Finished all words
+        setShowSuccess(true);
+    }
+  };
+
   const handleOptionClick = (id: string) => {
     setSelectedOption(id);
     if (id === currentWord.id) {
         // Correct feedback
         setTimeout(() => {
-            if (currentIndex < words.length - 1) {
-                setCurrentIndex(prev => prev + 1);
-            } else {
-                // End of set loop
-                setCurrentIndex(0);
-            }
+            handleNext();
         }, 1000);
+    } else {
+        // Incorrect: Show detail after a short delay
+        setTimeout(() => {
+            setShowDetail(true);
+        }, 800);
     }
   };
 
   const playAudio = () => {
-    geminiService.current.playPronunciation(currentWord.english);
+    const utterance = new SpeechSynthesisUtterance(currentWord.english);
+    utterance.lang = 'en-US';
+    window.speechSynthesis.speak(utterance);
   };
 
   return (
     <div className="flex flex-col h-full bg-stone-50 p-4 relative">
+      <WordDetailModal 
+        isOpen={showDetail} 
+        onClose={() => setShowDetail(false)} 
+        onNext={handleNext}
+        word={currentWord} 
+        nextWord={nextWord}
+      />
+
+      <SuccessModal 
+        isOpen={showSuccess} 
+        onClose={onBack} 
+      />
+      
       {/* Top Bar */}
       <div className="flex justify-between items-center mb-8 pt-2 px-2">
         <button onClick={onBack} className="p-2 text-stone-500 hover:text-stone-800 hover:bg-stone-200 rounded-full transition-colors">
           <ArrowLeft className="w-6 h-6" />
         </button>
         <span className="text-xs font-bold text-stone-400 uppercase tracking-widest">{category}</span>
-        <div className="w-10"></div> {/* Spacer */}
+        <button 
+            onClick={() => setShowDetail(true)}
+            className="p-2 text-stone-400 hover:text-blue-500 transition-colors"
+            title="Word Details"
+        >
+            <Info className="w-6 h-6" />
+        </button>
       </div>
 
       {/* Target Word Section */}
@@ -420,7 +576,7 @@ const SettingsView = ({
 
 export default function App() {
   const [state, setState] = useState<AppState>({
-    apiKey: process.env.API_KEY || null,
+    apiKey: null,
     currentView: 'home',
     words: MOCK_WORDS,
     learnedCount: 15,
@@ -430,68 +586,20 @@ export default function App() {
     selectedCategory: 'General'
   });
 
-  const [isLoading, setIsLoading] = useState(false);
   const [showLibrary, setShowLibrary] = useState(false);
-  const geminiService = useRef(new GeminiService(state.apiKey || ''));
-
-  useEffect(() => {
-    if (state.apiKey) {
-      geminiService.current.updateApiKey(state.apiKey);
-    }
-  }, [state.apiKey]);
-
-  const handleGenerateWords = async (categoryOverride?: WordCategory) => {
-    const categoryToUse = categoryOverride || state.selectedCategory;
-    
-    if (!state.apiKey) {
-        console.warn("No API Key detected. Ensure process.env.API_KEY is set.");
-    }
-
-    setIsLoading(true);
-    try {
-        const newWords = await geminiService.current.generateWordList(categoryToUse);
-        setState(prev => ({ 
-            ...prev, 
-            words: newWords,
-            currentView: 'study',
-            selectedCategory: categoryToUse 
-        }));
-    } catch (e) {
-        console.error("Failed to generate", e);
-        alert("Failed to generate words. Check your API configuration.");
-    } finally {
-        setIsLoading(false);
-        setShowLibrary(false);
-    }
-  };
 
   const handleLibrarySelect = (cat: WordCategory) => {
       setState(prev => ({ ...prev, selectedCategory: cat }));
   };
 
   const handleLibraryConfirm = () => {
-      handleGenerateWords(state.selectedCategory);
+      setShowLibrary(false);
+      setState(prev => ({ ...prev, currentView: 'study' }));
   };
 
   const setDailyGoal = (goal: number) => {
       setState(prev => ({ ...prev, dailyGoal: goal }));
   };
-
-  if (isLoading) {
-    return (
-        <div className="h-screen w-screen flex flex-col items-center justify-center bg-stone-50 space-y-6 relative overflow-hidden">
-             <div className="absolute inset-0 flex items-center justify-center opacity-5">
-                 <div className="w-64 h-64 border-8 border-stone-900 rounded-full animate-ping"></div>
-             </div>
-             
-            <Loader2 className="w-16 h-16 text-blue-600 animate-spin z-10" />
-            <div className="flex flex-col items-center z-10">
-                <span className="text-stone-800 font-bold text-lg">Generating {state.selectedCategory} Lesson</span>
-                <span className="text-stone-500 text-sm">Consulting AI...</span>
-            </div>
-        </div>
-    );
-  }
 
   return (
     <div className="w-full h-screen max-w-md mx-auto bg-stone-50 shadow-2xl overflow-hidden font-sans relative">
@@ -515,7 +623,6 @@ export default function App() {
         <StudyView 
             words={state.words} 
             category={state.selectedCategory}
-            geminiService={geminiService}
             onBack={() => setState(prev => ({ ...prev, currentView: 'home' }))} 
         />
       )}
@@ -524,7 +631,6 @@ export default function App() {
         <StudyView 
             words={[...state.words].reverse()} 
             category={`${state.selectedCategory} Review`}
-            geminiService={geminiService}
             onBack={() => setState(prev => ({ ...prev, currentView: 'home' }))} 
         />
       )}
