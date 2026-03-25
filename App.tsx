@@ -409,12 +409,7 @@ const StudyView = ({
 
       {/* Target Word Section */}
       <div className="flex flex-col items-center justify-center mb-10 space-y-6">
-        <div className="relative group cursor-pointer" onClick={playAudio}>
-             <h2 className="text-4xl font-bold text-stone-800 tracking-wide text-center">{currentWord.english}</h2>
-             <div className="absolute -right-8 top-1/2 -translate-y-1/2 opacity-0 group-hover:opacity-100 transition-opacity">
-                <Volume2 className="w-6 h-6 text-blue-400" />
-             </div>
-        </div>
+        <h2 className="text-4xl font-bold text-stone-800 tracking-wide text-center">{currentWord.english}</h2>
         
         <button 
           onClick={playAudio}
