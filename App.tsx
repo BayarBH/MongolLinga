@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useRef } from 'react';
-import { BookOpen, RotateCcw, ArrowLeft, Volume2, Info, Settings, Check, X, ArrowRight } from 'lucide-react';
+import { BookOpen, RotateCcw, ArrowLeft, Volume2, Info, Settings, Check, X, ArrowRight, User, Edit2 } from 'lucide-react';
 import { AppState, WordItem, ViewState, WordCategory } from './types';
 import { VerticalText } from './components/VerticalText';
 
@@ -243,7 +243,10 @@ const HomeView = ({
     <div className="flex flex-col h-full bg-stone-50 p-6 relative">
       {/* Header / Top Bar */}
       <div className="flex justify-between items-center mb-8">
-        <h1 className="text-2xl font-bold text-stone-800 tracking-tight">MongolLingua</h1>
+        <div className="flex flex-col">
+            <h1 className="text-2xl font-bold text-stone-800 tracking-tight">MongolLingua</h1>
+            <span className="text-stone-400 text-xs font-medium">Sain baina uu, {state.username}!</span>
+        </div>
         <div className="flex gap-3">
            {/* Word Bank Icon */}
           <button 
@@ -256,10 +259,10 @@ const HomeView = ({
           </button>
           
           <button 
-            onClick={() => onNavigate('settings')}
+            onClick={() => onNavigate('profile')}
             className="p-2 bg-white border-2 border-stone-200 rounded-xl shadow-sm hover:border-stone-400 transition-colors active:scale-95"
           >
-            <Settings className="w-5 h-5 text-stone-600" />
+            <User className="w-5 h-5 text-stone-600" />
           </button>
         </div>
       </div>
@@ -471,23 +474,26 @@ const StudyView = ({
   );
 };
 
-// 3. Settings View - Fully Refactored for Horizontal (Landscape-style) Section Scrolling
-// Reduced font sizes for a more balanced UI as requested.
-const SettingsView = ({ 
+// 5. Profile & Settings View
+const ProfileView = ({ 
+    username,
     dailyGoal,
-    setDailyGoal,
+    onUpdateProfile,
     onBack 
 }: { 
+    username: string,
     dailyGoal: number,
-    setDailyGoal: (g: number) => void,
+    onUpdateProfile: (name: string, goal: number) => void,
     onBack: () => void 
 }) => {
+    const [inputName, setInputName] = useState(username);
     const [inputGoal, setInputGoal] = useState(dailyGoal.toString());
+    const [isEditingName, setIsEditingName] = useState(false);
 
     const handleSave = () => {
         const goal = parseInt(inputGoal);
         if (!isNaN(goal) && goal > 0) {
-            setDailyGoal(goal);
+            onUpdateProfile(inputName, goal);
         }
         onBack();
     }
@@ -495,26 +501,57 @@ const SettingsView = ({
     return (
         <div className="w-full h-full flex items-center justify-center bg-stone-50 overflow-hidden">
             {/* The Main Horizontal Scrolling Card */}
-            <div className="bg-white rounded-[40px] shadow-2xl border border-stone-100 flex flex-row items-stretch gap-8 p-10 overflow-x-auto max-w-[95%] h-[75%] scrollbar-hide">
+            <div className="bg-white rounded-[40px] shadow-2xl border border-stone-100 flex flex-row items-stretch gap-8 p-10 overflow-x-auto max-w-[95%] h-[85%] scrollbar-hide">
                 
-                {/* Section 1: Settings Label + Icon */}
+                {/* Section 1: Profile Label + Avatar */}
                 <div className="flex flex-col items-center justify-center gap-6 px-4 border-r border-stone-50 pr-8">
-                   <div className="bg-stone-50 p-4 rounded-[24px] shadow-inner border border-stone-100">
-                      <Settings className="w-8 h-8 text-stone-700" />
+                   <div className="relative">
+                        <div className="bg-stone-50 p-6 rounded-[32px] shadow-inner border border-stone-100">
+                            <User className="w-12 h-12 text-stone-700" />
+                        </div>
+                        <div className="absolute -bottom-2 -right-2 bg-blue-500 p-2 rounded-full text-white shadow-lg">
+                            <Settings className="w-4 h-4" />
+                        </div>
                    </div>
-                   {/* "Settings" in Traditional Mongolian: ᠲᠣᠬᠢᠷᠠᠭᠤᠯᠭ᠎ᠠ - Font size reduced to text-xl */}
-                   <VerticalText text="ᠲᠣᠬᠢᠷᠠᠭᠤᠯᠭ᠎ᠠ" className="text-xl font-bold text-stone-800 h-40" />
+                   {/* "Profile" in Traditional Mongolian: ᠬᠤᠪᠢ ᠬᠦᠮᠦᠨ */}
+                   <VerticalText text="ᠬᠤᠪᠢ ᠬᠦᠮᠦᠨ" className="text-xl font-bold text-stone-800 h-40" />
                 </div>
                 
-                {/* Section 2: Daily Goal Vertical Label */}
+                {/* Section 2: User Info & Name Edit */}
+                <div className="flex flex-col items-center justify-center gap-6 px-4 min-w-[200px]">
+                    <div className="flex items-center justify-center mb-2">
+                        {/* "User Name" in Traditional Mongolian: ᠬᠡᠷᠡᠭᠯᠡᠭᠴᠢ ᠶᠢᠨ ᠨᠡᠷᠡ */}
+                        <VerticalText text="ᠬᠡᠷᠡᠭᠯᠡᠭᠴᠢ ᠶᠢᠨ ᠨᠡᠷᠡ" className="text-sm font-bold text-stone-400 h-48 mr-4" />
+                        
+                        {isEditingName ? (
+                            <input 
+                                type="text"
+                                value={inputName}
+                                onChange={(e) => setInputName(e.target.value)}
+                                onBlur={() => setIsEditingName(false)}
+                                autoFocus
+                                className="bg-stone-50 border-2 border-blue-200 rounded-xl px-4 py-2 text-lg font-bold text-stone-800 focus:outline-none"
+                            />
+                        ) : (
+                            <div 
+                                onClick={() => setIsEditingName(true)}
+                                className="flex items-center gap-3 cursor-pointer group"
+                            >
+                                <span className="text-2xl font-black text-stone-800">{inputName}</span>
+                                <Edit2 className="w-4 h-4 text-stone-300 group-hover:text-blue-500 transition-colors" />
+                            </div>
+                        )}
+                    </div>
+                </div>
+
+                {/* Section 3: Daily Goal Vertical Label */}
                 <div className="flex items-center justify-center px-4">
-                    {/* "Daily Word Goal" in Traditional Mongolian: ᠡᠳᠦᠷ ᠪᠦᠷᠢ ᠶᠢᠨ ᠵᠣᠷᠢᠯᠲᠠ - Font size reduced to text-sm */}
+                    {/* "Daily Word Goal" in Traditional Mongolian: ᠡᠳᠦᠷ ᠪᠦᠷᠢ ᠶᠢᠨ ᠵᠣᠷᠢᠯᠲᠠ */}
                     <VerticalText text="ᠡᠳᠦᠷ ᠪᠦᠷᠢ ᠶᠢᠨ ᠵᠣᠷᠢᠯᠲᠠ" className="text-sm font-bold text-stone-400 h-56" />
                 </div>
 
-                {/* Section 3: Goal Input & Presets */}
+                {/* Section 4: Goal Input & Presets */}
                 <div className="flex flex-col items-center justify-center gap-8 px-4 min-w-[240px]">
-                    {/* Big Numeric Display - Font size reduced to text-4xl */}
                     <div className="relative w-full">
                         <input 
                             type="number" 
@@ -524,7 +561,6 @@ const SettingsView = ({
                         />
                     </div>
 
-                    {/* Preset Buttons - 10, 20, 30 as row - Font size reduced to text-lg */}
                     <div className="flex gap-3 w-full">
                         {[10, 20, 30].map(val => (
                             <button
@@ -542,18 +578,16 @@ const SettingsView = ({
                     </div>
                 </div>
 
-                {/* Section 4: Action Buttons (Save/Cancel) */}
+                {/* Section 5: Action Buttons */}
                 <div className="flex flex-col items-center justify-center gap-8 px-8 border-l border-stone-50 pl-10">
-                    {/* Save Button - Text size reduced to text-lg */}
                     <button 
                         onClick={handleSave}
                         className="w-24 h-48 bg-[#A7D9FF] text-stone-800 rounded-[32px] flex items-center justify-center hover:brightness-105 active:scale-95 transition-all shadow-lg shadow-blue-50 group"
                     >
-                        {/* "Save Changes" in Traditional Mongolian: ᠬᠠᠳᠠᠭᠠᠯᠠᠬᠤ */}
+                        {/* "Save" in Traditional Mongolian: ᠬᠠᠳᠠᠭᠠᠯᠠᠬᠤ */}
                         <VerticalText text="ᠬᠠᠳᠠᠭᠠᠯᠠᠬᠤ" className="font-bold text-lg h-36 group-hover:scale-105 transition-transform" />
                     </button>
                     
-                    {/* Cancel Button - Text size reduced to text-sm */}
                     <button 
                         onClick={onBack}
                         className="flex items-center justify-center p-3 hover:bg-stone-50 rounded-2xl transition-colors group"
@@ -567,12 +601,252 @@ const SettingsView = ({
     );
 }
 
+// 6. Login View
+const LoginView = ({ 
+    onLogin, 
+    onNavigateSignup 
+}: { 
+    onLogin: (email: string) => void, 
+    onNavigateSignup: () => void 
+}) => {
+    const [email, setEmail] = useState('');
+    const [password, setPassword] = useState('');
+    const [error, setError] = useState<string | null>(null);
+
+    const handleLogin = () => {
+        if (!email || !password) {
+            setError('Please fill in all fields');
+            return;
+        }
+        // Mock error for demonstration as seen in sketch
+        if (email === 'error@test.com') {
+            setError('Email or password incorrect');
+            return;
+        }
+        onLogin(email);
+    }
+
+    return (
+        <div className="w-full h-full flex items-center justify-center bg-stone-50 p-6 relative">
+            {/* Login Card */}
+            <div className="bg-white w-full max-w-sm rounded-[40px] shadow-2xl border border-stone-100 p-10 flex flex-col items-center gap-8 relative overflow-hidden">
+                <div className="w-full space-y-6">
+                    <div className="space-y-4">
+                        <input 
+                            type="email" 
+                            placeholder="Email" 
+                            value={email}
+                            onChange={(e) => setEmail(e.target.value)}
+                            className="w-full px-6 py-4 bg-stone-50 border-2 border-stone-100 rounded-2xl focus:border-blue-400 outline-none transition-all font-medium"
+                        />
+                        <input 
+                            type="password" 
+                            placeholder="Password" 
+                            value={password}
+                            onChange={(e) => setPassword(e.target.value)}
+                            className="w-full px-6 py-4 bg-stone-50 border-2 border-stone-100 rounded-2xl focus:border-blue-400 outline-none transition-all font-medium"
+                        />
+                    </div>
+
+                    <div className="flex justify-center">
+                        <button 
+                            onClick={handleLogin}
+                            className="w-20 h-48 bg-blue-600 text-white rounded-[32px] flex items-center justify-center hover:bg-blue-700 transition-all shadow-lg active:scale-95 group"
+                        >
+                            <VerticalText text="ᠨᠡᠪᠲᠡᠷᠡᠬᠦ" className="text-xl font-bold h-32 group-hover:scale-105 transition-transform" />
+                        </button>
+                    </div>
+
+                    <button 
+                        onClick={onNavigateSignup}
+                        className="w-full text-stone-400 text-sm font-medium hover:text-blue-500 transition-colors"
+                    >
+                        Don't have an account? Sign up
+                    </button>
+                </div>
+
+                {/* Error Overlay (Sketch 2) */}
+                {error && (
+                    <div className="absolute inset-0 bg-blue-500/90 backdrop-blur-sm flex flex-col items-center justify-center p-10 z-50 animate-in fade-in duration-300">
+                        <div className="bg-white/10 p-4 rounded-full mb-6">
+                            <X className="w-12 h-12 text-white" />
+                        </div>
+                        <VerticalText text="ᠠᠯᠳᠠᠭ᠎ᠠ" className="text-white text-2xl font-bold h-32 mb-8" />
+                        <span className="text-blue-100 text-center mb-10 font-medium">{error}</span>
+                        
+                        <button 
+                            onClick={() => setError(null)}
+                            className="w-20 h-32 bg-white text-blue-600 rounded-[32px] flex items-center justify-center hover:bg-blue-50 transition-all shadow-xl active:scale-95"
+                        >
+                            <VerticalText text="ᠪᠠᠲᠤᠯᠠᠬᠤ" className="text-xl font-bold h-24" />
+                        </button>
+                    </div>
+                )}
+            </div>
+        </div>
+    );
+}
+
+// 7. Signup View (Sketch 3)
+const SignupView = ({ 
+    onSignup, 
+    onBack 
+}: { 
+    onSignup: (email: string) => void, 
+    onBack: () => void 
+}) => {
+    const [email, setEmail] = useState('');
+
+    const handleSignup = () => {
+        if (email) onSignup(email);
+    }
+
+    return (
+        <div className="w-full h-full flex items-center justify-center bg-stone-50 p-6">
+            <div className="bg-white w-full max-w-sm rounded-[40px] shadow-2xl border border-stone-100 p-10 flex flex-col items-center gap-10">
+                <div className="w-full space-y-8">
+                    <div className="flex flex-col items-center">
+                        <div className="bg-blue-50 p-4 rounded-3xl mb-4">
+                            <User className="w-10 h-10 text-blue-600" />
+                        </div>
+                        <h2 className="text-xl font-bold text-stone-800">Create Account</h2>
+                    </div>
+
+                    <input 
+                        type="email" 
+                        placeholder="Email Address" 
+                        value={email}
+                        onChange={(e) => setEmail(e.target.value)}
+                        className="w-full px-6 py-4 bg-stone-50 border-2 border-stone-100 rounded-2xl focus:border-blue-400 outline-none transition-all font-medium text-center"
+                    />
+
+                    <div className="flex justify-center">
+                        <button 
+                            onClick={handleSignup}
+                            className="w-20 h-48 bg-blue-600 text-white rounded-[32px] flex items-center justify-center hover:bg-blue-700 transition-all shadow-lg active:scale-95 group"
+                        >
+                            <VerticalText text="ᠪᠦᠷᠢᠳᠬᠡᠭᠦᠯᠬᠦ" className="text-xl font-bold h-40 group-hover:scale-105 transition-transform" />
+                        </button>
+                    </div>
+
+                    <button 
+                        onClick={onBack}
+                        className="w-full text-stone-400 text-sm font-medium hover:text-blue-500 transition-colors"
+                    >
+                        Already have an account? Login
+                    </button>
+                </div>
+            </div>
+        </div>
+    );
+}
+
+// 8. Verification View (Sketch 4)
+const VerificationView = ({ 
+    email, 
+    onVerify, 
+    onBack 
+}: { 
+    email: string, 
+    onVerify: () => void, 
+    onBack: () => void 
+}) => {
+    const [code, setCode] = useState(['', '', '', '']);
+    const [timeLeft, setTimeLeft] = useState(60);
+    const inputs = useRef<(HTMLInputElement | null)[]>([]);
+
+    useEffect(() => {
+        if (timeLeft > 0) {
+            const timer = setTimeout(() => setTimeLeft(timeLeft - 1), 1000);
+            return () => clearTimeout(timer);
+        }
+    }, [timeLeft]);
+
+    const handleChange = (index: number, value: string) => {
+        if (!/^\d*$/.test(value)) return;
+        
+        const newCode = [...code];
+        newCode[index] = value.slice(-1);
+        setCode(newCode);
+
+        // Move to next input
+        if (value && index < 3) {
+            inputs.current[index + 1]?.focus();
+        }
+
+        // Auto-verify if complete (as mentioned in sketch)
+        if (newCode.every(c => c !== '') && index === 3) {
+            setTimeout(onVerify, 500);
+        }
+    }
+
+    const handleKeyDown = (index: number, e: React.KeyboardEvent) => {
+        if (e.key === 'Backspace' && !code[index] && index > 0) {
+            inputs.current[index - 1]?.focus();
+        }
+    }
+
+    return (
+        <div className="w-full h-full flex items-center justify-center bg-stone-50 p-6">
+            <div className="bg-white w-full max-w-sm rounded-[40px] shadow-2xl border border-stone-100 p-10 flex flex-col items-center gap-10">
+                <div className="flex flex-col items-center">
+                    <h2 className="text-xl font-bold text-stone-800">Verify Email</h2>
+                    <p className="text-stone-400 text-sm mt-1">{email}</p>
+                </div>
+
+                <div className="flex gap-3">
+                    {code.map((digit, i) => (
+                        <input
+                            key={i}
+                            ref={el => inputs.current[i] = el}
+                            type="text"
+                            value={digit}
+                            onChange={(e) => handleChange(i, e.target.value)}
+                            onKeyDown={(e) => handleKeyDown(i, e)}
+                            className="w-14 h-16 bg-stone-50 border-2 border-stone-200 rounded-2xl text-center text-2xl font-black text-stone-800 focus:border-blue-400 focus:bg-white outline-none transition-all"
+                        />
+                    ))}
+                </div>
+
+                <div className="flex flex-col items-center gap-6">
+                    <div className="flex flex-col items-center gap-2">
+                        <div className="w-12 h-12 rounded-full border-4 border-blue-50 border-t-blue-500 flex items-center justify-center font-bold text-blue-600 text-sm">
+                            {timeLeft}s
+                        </div>
+                        {timeLeft === 0 && (
+                            <button 
+                                onClick={() => setTimeLeft(60)}
+                                className="text-blue-500 text-sm font-bold animate-in fade-in"
+                            >
+                                <VerticalText text="ᠳᠠᠬᠢᠨ ᠢᠯᠡᠭᠡᠬᠦ" className="h-24" />
+                            </button>
+                        )}
+                    </div>
+
+                    <button 
+                        onClick={onVerify}
+                        className="w-20 h-48 bg-blue-600 text-white rounded-[32px] flex items-center justify-center hover:bg-blue-700 transition-all shadow-lg active:scale-95 group"
+                    >
+                        <VerticalText text="ᠪᠠᠲᠤᠯᠠᠬᠤ" className="text-xl font-bold h-32 group-hover:scale-105 transition-transform" />
+                    </button>
+                </div>
+
+                <button onClick={onBack} className="text-stone-400 hover:text-stone-600 transition-colors">
+                    <ArrowLeft className="w-6 h-6" />
+                </button>
+            </div>
+        </div>
+    );
+}
+
 // --- MAIN APP ---
 
 export default function App() {
   const [state, setState] = useState<AppState>({
     apiKey: null,
-    currentView: 'home',
+    currentView: 'login',
+    isLoggedIn: false,
+    username: 'Learner',
     words: MOCK_WORDS,
     learnedCount: 15,
     dailyGoal: 20,
@@ -583,6 +857,28 @@ export default function App() {
 
   const [showLibrary, setShowLibrary] = useState(false);
 
+  const handleLogin = (email: string) => {
+      setState(prev => ({ 
+          ...prev, 
+          isLoggedIn: true, 
+          userEmail: email, 
+          currentView: 'home',
+          username: email.split('@')[0]
+      }));
+  };
+
+  const handleSignup = (email: string) => {
+      setState(prev => ({ 
+          ...prev, 
+          userEmail: email, 
+          currentView: 'verification' 
+      }));
+  };
+
+  const handleVerify = () => {
+    handleLogin(state.userEmail || 'User');
+  };
+
   const handleLibrarySelect = (cat: WordCategory) => {
       setState(prev => ({ ...prev, selectedCategory: cat }));
   };
@@ -592,24 +888,52 @@ export default function App() {
       setState(prev => ({ ...prev, currentView: 'study' }));
   };
 
-  const setDailyGoal = (goal: number) => {
-      setState(prev => ({ ...prev, dailyGoal: goal }));
+  const updateProfile = (name: string, goal: number) => {
+      setState(prev => ({ ...prev, username: name, dailyGoal: goal }));
   };
+
+  const navigateTo = (view: ViewState) => {
+      setState(prev => ({ ...prev, currentView: view }));
+  }
 
   return (
     <div className="w-full h-screen max-w-md mx-auto bg-stone-50 shadow-2xl overflow-hidden font-sans relative">
-      <LibraryModal 
-        isOpen={showLibrary} 
-        onClose={() => setShowLibrary(false)}
-        selectedCategory={state.selectedCategory}
-        onSelect={handleLibrarySelect}
-        onConfirm={handleLibraryConfirm}
-      />
+      {!['login', 'signup', 'verification'].includes(state.currentView) && (
+        <LibraryModal 
+            isOpen={showLibrary} 
+            onClose={() => setShowLibrary(false)}
+            selectedCategory={state.selectedCategory}
+            onSelect={handleLibrarySelect}
+            onConfirm={handleLibraryConfirm}
+        />
+      )}
+
+      {state.currentView === 'login' && (
+        <LoginView 
+            onLogin={handleLogin}
+            onNavigateSignup={() => navigateTo('signup')}
+        />
+      )}
+
+      {state.currentView === 'signup' && (
+        <SignupView 
+            onSignup={handleSignup}
+            onBack={() => navigateTo('login')}
+        />
+      )}
+
+      {state.currentView === 'verification' && (
+        <VerificationView 
+            email={state.userEmail || ''}
+            onVerify={handleVerify}
+            onBack={() => navigateTo('signup')}
+        />
+      )}
 
       {state.currentView === 'home' && (
         <HomeView 
             state={state} 
-            onNavigate={(view) => setState(prev => ({ ...prev, currentView: view }))}
+            onNavigate={navigateTo}
             onOpenLibrary={() => setShowLibrary(true)}
         />
       )}
@@ -618,7 +942,7 @@ export default function App() {
         <StudyView 
             words={state.words} 
             category={state.selectedCategory}
-            onBack={() => setState(prev => ({ ...prev, currentView: 'home' }))} 
+            onBack={() => navigateTo('home')} 
         />
       )}
 
@@ -626,15 +950,16 @@ export default function App() {
         <StudyView 
             words={[...state.words].reverse()} 
             category={`${state.selectedCategory} Review`}
-            onBack={() => setState(prev => ({ ...prev, currentView: 'home' }))} 
+            onBack={() => navigateTo('home')} 
         />
       )}
 
-      {state.currentView === 'settings' && (
-        <SettingsView 
+      {state.currentView === 'profile' && (
+        <ProfileView 
+            username={state.username}
             dailyGoal={state.dailyGoal}
-            setDailyGoal={setDailyGoal}
-            onBack={() => setState(prev => ({ ...prev, currentView: 'home' }))}
+            onUpdateProfile={updateProfile}
+            onBack={() => navigateTo('home')}
         />
       )}
     </div>

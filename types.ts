@@ -5,12 +5,15 @@ export interface WordItem {
   example?: string;
 }
 
-export type ViewState = 'home' | 'study' | 'review' | 'settings';
+export type ViewState = 'home' | 'study' | 'review' | 'settings' | 'profile' | 'login' | 'signup' | 'verification';
 export type WordCategory = 'General' | 'IELTS' | 'TOEFL' | 'Business' | 'Travel';
 
 export interface AppState {
   apiKey: string | null;
   currentView: ViewState;
+  isLoggedIn: boolean;
+  username: string;
+  userEmail?: string;
   words: WordItem[];
   learnedCount: number;
   dailyGoal: number;
